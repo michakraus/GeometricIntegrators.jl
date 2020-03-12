@@ -79,6 +79,11 @@ module Integrators
     include("integrators/rk/integrators_pglrk.jl")
 
 
+    export TableauGLM
+
+    include("integrators/glm/integrators_glm.jl")
+
+
     export IntegratorSplitting, AbstractTableauSplitting,
            TableauSplittingGS, TableauSplittingNS, TableauSplittingSS
 
