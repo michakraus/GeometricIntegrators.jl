@@ -2,6 +2,7 @@ module SPARK
 
     using Documenter: @doc
     using LinearAlgebra: Diagonal
+    using StaticArrays
 
     using ..CommonFunctions
     using ..Config

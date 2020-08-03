@@ -2,7 +2,7 @@
 using NLsolve
 
 "Holds the coefficients of a projected Gauss-Legendre Runge-Kutta method."
-struct CoefficientsPGLRK{T} <: AbstractCoefficients{T}
+struct CoefficientsPGLRK{T,S} <: AbstractCoefficients{T}
     @HeaderCoefficientsRK
     @CoefficientsRK
 
@@ -30,7 +30,7 @@ struct CoefficientsPGLRK{T} <: AbstractCoefficients{T}
         mul!(B, W, Q)
         mul!(A, P, B)
 
-        new(name,o,s,a,b,c,P,Q,X,W,A)
+        new{T,s}(name,o,s,a,b,c,P,Q,X,W,A)
     end
 end
 

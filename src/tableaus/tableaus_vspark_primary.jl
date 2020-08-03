@@ -8,21 +8,21 @@ function getTableauVSPARKMidpointProjection(name, q::CoefficientsRK{T}, p::Coeff
     β = g.b
     γ = g.c
 
-    α  = zeros(T, s, 1)
-    α .= 0.5
+    α = SMatrix{s, 1, T}(0.5 .* ones(T, s, 1))
 
-    q_ã = zeros(T, 1, s)
+    _q_ã = zeros(T, 1, s)
     for i in 1:s
-        q_ã[1,i] = q.b[i] / β[1] * ( β[1] - α[i,1] )
+        _q_ã[1,i] = q.b[i] / β[1] * ( β[1] - α[i,1] )
     end
+    q_ã = SMatrix{1, s, T}(_q_ã)
 
-    p_ã = zeros(T, 1, s)
+    _p_ã = zeros(T, 1, s)
     for i in 1:s
-        p_ã[1,i] = p.b[i] / β[1] * ( β[1] - α[i,1] )
+        _p_ã[1,i] = p.b[i] / β[1] * ( β[1] - α[i,1] )
     end
+    p_ã = SMatrix{1, s, T}(_p_ã)
 
-    β  = zero(g.b)
-    β .= α̃[1,1] * (1 + R∞)
+    β = @SVector [α̃[1,1] * (1 + R∞)]
 
     d = ones(T, 1)
 
@@ -55,29 +55,31 @@ function getTableauVSPARKSymmetricProjection(name, q::CoefficientsRK{T}, p::Coef
     a_q = q.a
     a_p = p.a
 
-    α_q = zeros(T, q.s, 2)
-    α_q[:,1] .= 0.5
+    _α_q = zeros(T, q.s, 2)
+    _α_q[:,1] .= 0.5
+    α_q = SMatrix{q.s, 2, T}(_α_q)
 
-    α_p = zeros(T, p.s, 2)
-    α_p[:,1] .= 0.5
+    _α_p = zeros(T, p.s, 2)
+    _α_p[:,1] .= 0.5
+    α_p = SMatrix{p.s, 2, T}(_α_p)
 
-    a_q̃ = Array(transpose(hcat(zero(q.b), q.b)))
-    a_p̃ = Array(transpose(hcat(zero(p.b), p.b)))
+    a_q̃ = SMatrix(transpose(hcat(zero(q.b), q.b)))
+    a_p̃ = SMatrix(transpose(hcat(zero(p.b), p.b)))
 
-    α_q̃ = [[0.0  0.0]
-           [0.5  R∞*0.5]]
-    α_p̃ = [[0.0  0.0]
-           [0.5  R∞*0.5]]
+    α_q̃ = @SMatrix [0.0  0.0
+                    0.5  R∞*0.5]
+    α_p̃ = @SMatrix [0.0  0.0
+                    0.5  R∞*0.5]
 
     b_q = q.b
     b_p = p.b
-    β_q = [0.5, R∞*0.5]
-    β_p = [0.5, R∞*0.5]
+    β_q = @SVector [0.5, R∞*0.5]
+    β_p = @SVector [0.5, R∞*0.5]
 
     c_q = q.c
     c_p = p.c
-    c_λ = [ 0.0, 1.0]
-    d_λ = [ 0.5, 0.5]
+    c_λ = @SVector [ 0.0, 1.0]
+    d_λ = @SVector [ 0.5, 0.5]
 
     ω_λ  = zeros(T, 1, 3)
     ω_λ .= [0.5 R∞*0.5 0.0]
@@ -153,14 +155,16 @@ function getTableauVSPARKSymplecticProjection(name, q::CoefficientsRK{T}, p::Coe
 
     # β_q = la.b
     # β_p = lb.b
-    β_q = [0.5, R∞*0.5]
-    β_p = [0.5, R∞*0.5]
+    β_q = @SVector [0.5, R∞*0.5]
+    β_p = @SVector [0.5, R∞*0.5]
 
-    α_q = zeros(T, s, 2)
-    α_q[:,1] .= 0.5
+    _α_q = zeros(T, s, 2)
+    _α_q[:,1] .= 0.5
+    α_q = SMatrix{s, 2, T}(_α_q)
 
-    α_p = zeros(T, s, 2)
-    α_p[:,1] .= 0.5
+    _α_p = zeros(T, s, 2)
+    _α_p[:,1] .= 0.5
+    α_p = SMatrix{s, 2, T}(_α_q)
 
 #    α_q = zeros(T, s, σ)
 #    α_p = zeros(T, s, σ)
@@ -171,14 +175,16 @@ function getTableauVSPARKSymplecticProjection(name, q::CoefficientsRK{T}, p::Coe
 #        end
 #    end
 
-    a_q̃ = zeros(T, σ, s)
-    a_p̃ = zeros(T, σ, s)
+    _a_q̃ = zeros(T, σ, s)
+    _a_p̃ = zeros(T, σ, s)
     for i in 1:σ
         for j in 1:s
-            a_q̃[i,j] = b_q[j] / β_p[i] * (β_p[i] - α_p[j,i])
-            a_p̃[i,j] = b_p[j] / β_q[i] * (β_q[i] - α_q[j,i])
+            _a_q̃[i,j] = b_q[j] / β_p[i] * (β_p[i] - α_p[j,i])
+            _a_p̃[i,j] = b_p[j] / β_q[i] * (β_q[i] - α_q[j,i])
         end
     end
+    a_q̃ = SMatrix{σ, s, T}(_a_q̃)
+    a_p̃ = SMatrix{σ, s, T}(_a_p̃)
 
     α_q̃ = la.a
     α_p̃ = lb.a
@@ -186,13 +192,13 @@ function getTableauVSPARKSymplecticProjection(name, q::CoefficientsRK{T}, p::Coe
     c_q = q.c
     c_p = p.c
     c_λ = la.c
-    d_λ = [0.5, 0.5]
+    d_λ = @SVector [0.5, 0.5]
 
 
-    ω_λ = [0.5 0.5 0.0
-           0.0 0.0 1.0]
+    ω_λ = @SMatrix [0.5 0.5 0.0
+                    0.0 0.0 1.0]
 
-    δ_λ = zeros(T, ρ, σ)
+    δ_λ = @SMatrix zeros(T, ρ, σ)
 
 
     if length(d) == 0

@@ -4,6 +4,7 @@ module Integrators
     using Documenter: @doc
     using LinearAlgebra
     using OffsetArrays
+    using StaticArrays
 
     using ..CommonFunctions
     using ..Config

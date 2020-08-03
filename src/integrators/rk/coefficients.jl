@@ -6,22 +6,18 @@
 end
 
 @define CoefficientsRK begin
-    a::Matrix{T}
-    b::Vector{T}
-    c::Vector{T}
+    a::SMatrix{S,S,T}
+    b::SVector{S,T}
+    c::SVector{S,T}
 end
 
 "Holds the coefficients of a Runge-Kutta method."
-struct CoefficientsRK{T} <: AbstractCoefficients{T}
+struct CoefficientsRK{T,S} <: AbstractCoefficients{T}
     @HeaderCoefficientsRK
     @CoefficientsRK
-    â::Matrix{T}
-    b̂::Vector{T}
-    ĉ::Vector{T}
-
-    function CoefficientsRK{T}(name,o,s,a,b,c) where {T}
-        new(name,o,s,a,b,c,zero(a),zero(b),zero(c))
-    end
+    â::SMatrix{S,S,T}
+    b̂::SVector{S,T}
+    ĉ::SVector{S,T}
 
     function CoefficientsRK{T}(name::Symbol, o::Int, s::Int, a, b, c, â, b̂, ĉ) where {T <: Real}
         @assert s > 0 "Number of stages must be > 0"
@@ -34,7 +30,13 @@ struct CoefficientsRK{T} <: AbstractCoefficients{T}
             ĉ = zero(ĉ)
         end
 
-        new(name,o,s,a,b,c,â,b̂,ĉ)
+        new{T,s}(name, o, s,
+                 convert(SMatrix{s,s,T}, a), convert(SVector{s,T}, b), convert(SVector{s,T}, c),
+                 convert(SMatrix{s,s,T}, â), convert(SVector{s,T}, b̂), convert(SVector{s,T}, ĉ))
+    end
+
+    function CoefficientsRK{T}(name,o,s,a,b,c) where {T}
+        CoefficientsRK{T}(name,o,s,a,b,c,zero(a),zero(b),zero(c))
     end
 end
 
@@ -44,9 +46,9 @@ function CoefficientsRK(T::Type, name::Symbol, order::Int, a::AbstractArray{CT,2
     c̅ = Vector{T}(c)
 
     if get_config(:tab_compensated_summation)
-        â = Matrix{T}(a-Matrix{eltype(a)}(a̅))
-        b̂ = Vector{T}(b-Vector{eltype(b)}(b̅))
-        ĉ = Vector{T}(c-Vector{eltype(c)}(c̅))
+        â = Matrix{T}(a - Matrix{eltype(a)}(a̅))
+        b̂ = Vector{T}(b - Vector{eltype(b)}(b̅))
+        ĉ = Vector{T}(c - Vector{eltype(c)}(c̅))
     else
         â = zero(a̅)
         b̂ = zero(b̅)
@@ -88,7 +90,7 @@ end
 
 
 
-function get_symplectic_conjugate_coefficients(a::Matrix{T}, b::Vector{T}, a̅::Matrix{T}) where {T}
+function get_symplectic_conjugate_coefficients(a::AbstractMatrix{T}, b::AbstractVector{T}, a̅::AbstractMatrix{T}) where {T}
     @assert size(a) == size(a̅)
     @assert length(b) == size(a,1) == size(a,2)
 
@@ -102,8 +104,8 @@ end
 
 
 function get_symplectic_conjugate_coefficients(coeff::CoefficientsRK)
-    a̅ = zero(coeff.a)
-    ã = zero(coeff.a)
+    a̅ = zero(Matrix(coeff.a))
+    ã = zero(Matrix(coeff.a))
 
     get_symplectic_conjugate_coefficients(coeff.a, coeff.b, a̅)
 
@@ -117,7 +119,7 @@ end
 
 function symplecticize(coeff::CoefficientsRK; name=nothing, T=Float64)
     name == nothing ? name = Symbol(string(coeff.name)*"S") : nothing
-    a̅ = zero(coeff.a)
+    a̅ = zero(Matrix(coeff.a))
     get_symplectic_conjugate_coefficients(coeff.a, coeff.b, a̅)
     CoefficientsRK(T, name, coeff.o, 0.5*(coeff.a + a̅), coeff.b, coeff.c)
 end

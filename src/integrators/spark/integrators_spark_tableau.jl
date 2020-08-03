@@ -1,18 +1,18 @@
-"Holds the tableau of an Specialised Partitioned Additive Runge-Kutta method for Variational systems."
-struct AbstractTableauSPARK{IT, DT <: Number} <: AbstractTableau{DT}
+"Holds the tableau of an Specialised Partitioned Additive Runge-Kutta method."
+struct AbstractTableauSPARK{IT, DT <: Number, S, R, Ρ} <: AbstractTableau{DT}
     name::Symbol
     o::Int
     s::Int
     r::Int
     ρ::Int
 
-    q::CoefficientsARK{DT}
-    p::CoefficientsARK{DT}
+    q::CoefficientsARK{DT,S,R}
+    p::CoefficientsARK{DT,S,R}
 
-    q̃::CoefficientsPRK{DT}
-    p̃::CoefficientsPRK{DT}
+    q̃::CoefficientsPRK{DT,S,R}
+    p̃::CoefficientsPRK{DT,S,R}
 
-    λ::CoefficientsMRK{DT}
+    λ::CoefficientsMRK{DT,R}
 
     ω::Matrix{DT}
     δ::Matrix{DT}
@@ -31,19 +31,19 @@ struct AbstractTableauSPARK{IT, DT <: Number} <: AbstractTableau{DT}
 
         @assert length(d)==0 || length(d)==s
 
-        new(name, o, s, r, ρ, q, p, q̃, p̃, λ, ω, δ, d)
+        new{IT,DT,s,r,ρ}(name, o, s, r, ρ, q, p, q̃, p̃, λ, ω, δ, d)
     end
 
     function AbstractTableauSPARK{IT}(name::Symbol, order::Int,
-                             a_q::Matrix{DT}, a_p::Matrix{DT},
-                             α_q::Matrix{DT}, α_p::Matrix{DT},
-                             a_q̃::Matrix{DT}, a_p̃::Matrix{DT},
-                             α_q̃::Matrix{DT}, α_p̃::Matrix{DT},
-                             b_q::Vector{DT}, b_p::Vector{DT},
-                             β_q::Vector{DT}, β_p::Vector{DT},
-                             c_q::Vector{DT}, c_p::Vector{DT},
-                             c_λ::Vector{DT}, d_λ::Vector{DT},
-                             ω::Matrix{DT}, δ::Matrix{DT}, d::Vector{DT}=DT[]) where {IT, DT <: Number}
+                             a_q::AbstractMatrix{DT}, a_p::AbstractMatrix{DT},
+                             α_q::AbstractMatrix{DT}, α_p::AbstractMatrix{DT},
+                             a_q̃::AbstractMatrix{DT}, a_p̃::AbstractMatrix{DT},
+                             α_q̃::AbstractMatrix{DT}, α_p̃::AbstractMatrix{DT},
+                             b_q::AbstractVector{DT}, b_p::AbstractVector{DT},
+                             β_q::AbstractVector{DT}, β_p::AbstractVector{DT},
+                             c_q::AbstractVector{DT}, c_p::AbstractVector{DT},
+                             c_λ::AbstractVector{DT}, d_λ::AbstractVector{DT},
+                             ω::AbstractMatrix{DT}, δ::AbstractMatrix{DT}, d::AbstractVector{DT}=DT[]) where {IT, DT <: Number}
 
         s = length(c_q)
         r = length(c_λ)
@@ -72,15 +72,15 @@ struct AbstractTableauSPARK{IT, DT <: Number} <: AbstractTableau{DT}
     end
 
     function AbstractTableauSPARK{IT}(name::Symbol, order::Int,
-                             a_q::Matrix{DT}, a_p::Matrix{DT},
-                             α_q::Matrix{DT}, α_p::Matrix{DT},
-                             a_q̃::Matrix{DT}, a_p̃::Matrix{DT},
-                             α_q̃::Matrix{DT}, α_p̃::Matrix{DT},
-                             b_q::Vector{DT}, b_p::Vector{DT},
-                             β_q::Vector{DT}, β_p::Vector{DT},
-                             c_q::Vector{DT}, c_p::Vector{DT},
-                             c_λ::Vector{DT}, d_λ::Vector{DT},
-                             d::Vector{DT}=DT[]) where {IT, DT <: Number}
+                             a_q::AbstractMatrix{DT}, a_p::AbstractMatrix{DT},
+                             α_q::AbstractMatrix{DT}, α_p::AbstractMatrix{DT},
+                             a_q̃::AbstractMatrix{DT}, a_p̃::AbstractMatrix{DT},
+                             α_q̃::AbstractMatrix{DT}, α_p̃::AbstractMatrix{DT},
+                             b_q::AbstractVector{DT}, b_p::AbstractVector{DT},
+                             β_q::AbstractVector{DT}, β_p::AbstractVector{DT},
+                             c_q::AbstractVector{DT}, c_p::AbstractVector{DT},
+                             c_λ::AbstractVector{DT}, d_λ::AbstractVector{DT},
+                             d::AbstractVector{DT}=DT[]) where {IT, DT <: Number}
 
         R = length(c_λ)
         AbstractTableauSPARK{IT}(name, order,

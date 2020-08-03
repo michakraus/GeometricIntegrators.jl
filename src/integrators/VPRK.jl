@@ -2,6 +2,7 @@ module VPRK
 
     using Documenter: @doc
     using LinearAlgebra: mul!
+    using StaticArrays
 
     using ..CommonFunctions
     using ..Config

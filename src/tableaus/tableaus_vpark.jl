@@ -8,29 +8,31 @@ function getTableauSymplecticProjection(name, q::CoefficientsRK{T}, p::Coefficie
     a_q = q.a
     a_p = p.a
 
-    α_q = zeros(T, q.s, 2)
-    α_q[:,1] .= 0.5
+    _α_q = zeros(T, q.s, 2)
+    _α_q[:,1] .= 0.5
+    α_q = SMatrix{q.s, 2, T}(_α_q)
 
-    α_p = zeros(T, p.s, 2)
-    α_p[:,1] .= 0.5
+    _α_p = zeros(T, p.s, 2)
+    _α_p[:,1] .= 0.5
+    α_p = SMatrix{p.s, 2, T}(_α_p)
 
-    a_q̃ = Array(transpose(hcat(zero(q.b), q.b)))
-    a_p̃ = Array(transpose(hcat(zero(p.b), p.b)))
+    a_q̃ = SMatrix(transpose(hcat(zero(q.b), q.b)))
+    a_p̃ = SMatrix(transpose(hcat(zero(p.b), p.b)))
 
-    α_q̃ = [[0.0  0.0]
-           [0.5  R∞*0.5]]
-    α_p̃ = [[0.0  0.0]
-           [0.5  R∞*0.5]]
+    α_q̃ = @SMatrix [0.0  0.0
+                    0.5  R∞*0.5]
+    α_p̃ = @SMatrix [0.0  0.0
+                    0.5  R∞*0.5]
 
     b_q = q.b
     b_p = p.b
-    β_q = [0.5, R∞*0.5]
-    β_p = [0.5, R∞*0.5]
+    β_q = @SVector [0.5, R∞*0.5]
+    β_p = @SVector [0.5, R∞*0.5]
 
     c_q = q.c
     c_p = p.c
-    c_λ = [0.0, 1.0]
-    d_λ = [0.0, 1.0]
+    c_λ = @SVector [0.0, 1.0]
+    d_λ = @SVector [0.0, 1.0]
 
 
     if length(d) == 0

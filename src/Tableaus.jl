@@ -1,6 +1,7 @@
 module Tableaus
 
     using LinearAlgebra: mul!
+    using StaticArrays
 
     using ..Config
     using ..CommonFunctions

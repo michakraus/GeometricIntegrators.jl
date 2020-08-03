@@ -101,7 +101,7 @@ function create_internal_stage_vector_with_zero(DT, D, M, S)
 end
 
 
-function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Matrix{T}, b::Vector{T}, Δt::T) where {T}
+function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Matrix{T}, b::AbstractVector{T}, Δt::T) where {T}
     @assert length(x) == length(xₑᵣᵣ)
     @assert length(x) == size(ẋ, 1)
     @assert length(b) == size(ẋ, 2)
@@ -113,7 +113,7 @@ function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Matrix{T}, b
     end
 end
 
-function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Vector{Vector{T}}, b::Vector{T}, Δt::T) where {T}
+function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Vector{Vector{T}}, b::AbstractVector{T}, Δt::T) where {T}
     @assert length(b) == length(ẋ)
     @assert length(x) == length(ẋ[1])
     @assert length(x) == length(xₑᵣᵣ)
@@ -125,7 +125,7 @@ function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Vector{Vecto
     end
 end
 
-function update_solution!(x::SolutionVector{T}, ẋ::Matrix{T}, b::Vector{T}, Δt::T) where {T}
+function update_solution!(x::SolutionVector{T}, ẋ::Matrix{T}, b::AbstractVector{T}, Δt::T) where {T}
     @assert length(x) == size(ẋ, 1)
     @assert length(b) == size(ẋ, 2)
 
@@ -141,7 +141,7 @@ function update_solution!(x::SolutionVector{T}, ẋ::Matrix{T}, b::Vector{T}, Δ
 end
 
 
-function update_solution!(x::SolutionVector{T}, ẋ::Vector{Vector{T}}, b::Vector{T}, Δt::T) where {T}
+function update_solution!(x::SolutionVector{T}, ẋ::Vector{Vector{T}}, b::AbstractVector{T}, Δt::T) where {T}
     @assert length(b) == length(ẋ)
     @assert length(x) == length(ẋ[1])
 
@@ -156,17 +156,17 @@ function update_solution!(x::SolutionVector{T}, ẋ::Vector{Vector{T}}, b::Vecto
     end
 end
 
-function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Union{Matrix{T},Vector{Vector{T}}}, b::Vector{T}, b̂::Vector, Δt::T) where {T}
+function update_solution!(x::Vector{T}, xₑᵣᵣ::Vector{T}, ẋ::Union{Matrix{T},Vector{Vector{T}}}, b::AbstractVector{T}, b̂::AbstractVector, Δt::T) where {T}
     update_solution!(x, xₑᵣᵣ, ẋ, b, Δt)
     update_solution!(x, xₑᵣᵣ, ẋ, b̂, Δt)
 end
 
-function update_solution!(x::SolutionVector{T}, ẋ::Union{Matrix{T},Vector{Vector{T}}}, b::Vector{T}, b̂::Vector, Δt::T) where {T}
+function update_solution!(x::SolutionVector{T}, ẋ::Union{Matrix{T},Vector{Vector{T}}}, b::AbstractVector{T}, b̂::AbstractVector, Δt::T) where {T}
     update_solution!(x, ẋ, b, Δt)
     update_solution!(x, ẋ, b̂, Δt)
 end
 
-function update_multiplier!(λ::SolutionVector{T}, Λ::Vector{Vector{T}}, b::Vector{T}) where {T}
+function update_multiplier!(λ::SolutionVector{T}, Λ::Vector{Vector{T}}, b::AbstractVector{T}) where {T}
     @assert length(λ) == size(Λ, 1)
     local t::T
     @inbounds for i in eachindex(λ)

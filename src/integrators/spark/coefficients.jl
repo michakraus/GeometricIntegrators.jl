@@ -6,19 +6,19 @@ end
 
 @define CoefficientsARK begin
     @CoefficientsRK
-    α::Matrix{T}
-    β::Vector{T}
+    α::SMatrix{S,R,T}
+    β::SVector{R,T}
 end
 
 @define CoefficientsPRK begin
-    a::Matrix{T}
-    c::Vector{T}
-    α::Matrix{T}
+    a::SMatrix{R,S,T}
+    c::SVector{R,T}
+    α::SMatrix{R,R,T}
 end
 
 
 "Holds the coefficients of an additive Runge-Kutta method."
-struct CoefficientsARK{T} <: AbstractCoefficients{T}
+struct CoefficientsARK{T,S,R} <: AbstractCoefficients{T}
     @HeaderCoefficientsARK
     @CoefficientsARK
 
@@ -27,7 +27,9 @@ struct CoefficientsARK{T} <: AbstractCoefficients{T}
         @assert r > 0 "Number of stages r must be > 0"
         @assert s==size(a,1)==size(a,2)==size(α,1)==length(b)==length(c)
         @assert r==size(α,2)==length(β)
-        new(name,o,s,r,a,b,c,α,β)
+        new{T,s,r}(name,o,s,r,
+                   convert(SMatrix{s,s,T}, a), convert(SVector{s,T}, b), convert(SVector{s,T}, c),
+                   convert(SMatrix{s,r,T}, α), convert(SVector{r,T}, β))
     end
 end
 
@@ -58,7 +60,7 @@ end
 
 
 "Holds the coefficients of a projective Runge-Kutta method."
-struct CoefficientsPRK{T} <: AbstractCoefficients{T}
+struct CoefficientsPRK{T,S,R} <: AbstractCoefficients{T}
     @HeaderCoefficientsARK
     @CoefficientsPRK
 
@@ -67,11 +69,12 @@ struct CoefficientsPRK{T} <: AbstractCoefficients{T}
         @assert r > 0 "Number of stages r must be > 0"
         @assert r==size(a,1)==size(α,1)==size(α,2)==length(c)
         @assert s==size(a,2)
-        new(name,o,s,r,a,c,α)
+        new{T,s,r}(name,o,s,r,
+                   convert(SMatrix{r,s,T}, a), convert(SVector{r,T}, c), convert(SMatrix{r,r,T}, α))
     end
 end
 
-function CoefficientsPRK(name::Symbol, order::Int, a::Matrix{T}, c::Vector{T}, α::Matrix{T}) where {T}
+function CoefficientsPRK(name::Symbol, order::Int, a::AbstractMatrix{T}, c::AbstractVector{T}, α::AbstractMatrix{T}) where {T}
     CoefficientsPRK{T}(name, order, size(a,2), length(c), a, c, α)
 end
 
@@ -94,20 +97,20 @@ end
 
 
 "Holds the multiplier Runge-Kutta coefficients."
-struct CoefficientsMRK{T}
+struct CoefficientsMRK{T,R}
     name::Symbol
     r::Int
-    b::Vector{T}
-    c::Vector{T}
+    b::SVector{R,T}
+    c::SVector{R,T}
 
     function CoefficientsMRK{T}(name::Symbol, r::Int, b, c) where {T <: Real}
         @assert r > 0 "Number of stages r must be > 0"
         @assert r==length(b)==length(c)
-        new(name,r,b,c)
+        new{T,r}(name, r, convert(SVector{r,T}, b), convert(SVector{r,T}, c))
     end
 end
 
-function CoefficientsMRK(name::Symbol, b::Vector{T}, c::Vector{T}) where {T}
+function CoefficientsMRK(name::Symbol, b::AbstractVector{T}, c::AbstractVector{T}) where {T}
     CoefficientsMRK{T}(name, length(c), b, c)
 end
 
@@ -126,21 +129,23 @@ end
 
 
 "Holds the coefficients of an additive Runge-Kutta method."
-struct CoefficientsIRK{T} <: AbstractCoefficients{T}
+struct CoefficientsIRK{T,Σ,S} <: AbstractCoefficients{T}
     @HeaderCoefficientsRK
     σ::Int
-    @CoefficientsRK
+    a::SMatrix{Σ,S,T}
+    b::SVector{Σ,T}
+    c::SVector{Σ,T}
 
     function CoefficientsIRK{T}(name::Symbol, o::Int, s::Int, σ::Int, a, b, c) where {T <: Real}
         @assert s > 0 "Number of stages s must be > 0"
         @assert σ > 0 "Number of stages σ must be > 0"
         @assert s==size(a,2)
         @assert σ==size(a,1)==length(b)==length(c)
-        new(name,o,s,σ,a,b,c)
+        new{T,σ,s}(name, o, s, σ, convert(SMatrix{σ,s,T}, a), convert(SVector{σ,T}, b), convert(SVector{σ,T}, c))
     end
 end
 
-function CoefficientsIRK(name::Symbol, order::Int, a::Matrix{T}, b::Vector{T}, c::Vector{T}) where {T}
+function CoefficientsIRK(name::Symbol, order::Int, a::AbstractMatrix{T}, b::AbstractVector{T}, c::AbstractVector{T}) where {T}
     CoefficientsIRK{T}(name, order, size(a,2), size(a,1), a, b, c)
 end
 
@@ -168,11 +173,11 @@ struct CoefficientsSPARK{T,N} <: AbstractCoefficients{T}
 
     σ::Int
 
-    a::Tuple{Vararg{Matrix{T},N}}
-    b::Tuple{Vararg{Vector{T},N}}
+    a::Tuple{Vararg{<:AbstractMatrix{T},N}}
+    b::Tuple{Vararg{<:AbstractVector{T},N}}
     c::Vector{T}
 
-    function CoefficientsSPARK(name::Symbol, o::Int, s::Int, σ::Int, a::Tuple{Vararg{Matrix{T},N}}, b::Tuple{Vararg{Vector{T},N}}, c::Vector{T}) where {T,N}
+    function CoefficientsSPARK(name::Symbol, o::Int, s::Int, σ::Int, a::Tuple{Vararg{<:AbstractMatrix{T},N}}, b::Tuple{Vararg{<:AbstractVector{T},N}}, c::AbstractVector{T}) where {T,N}
         @assert T <: Real
         @assert isa(name, Symbol)
         @assert isa(o, Integer)
